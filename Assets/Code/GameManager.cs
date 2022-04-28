@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using MyCanvasPack;
-using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -20,7 +19,6 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private List<StateDisplay> displays;
 	[SerializeField] private float steadyOpenDelay;
 	[SerializeField] private Vector2 rangeBangDelay;
-	[SerializeField] private Vector2 rangeEnemyShootTime;
 
 	[SerializeField] private PlayerController player;
 	[SerializeField] private PlayerController enemy;
@@ -30,20 +28,37 @@ public class GameManager : MonoBehaviour
 	private DateTime _bangTime;
 	private float _enemyDistance;
 
-	public int Level { get; set; }
+	private readonly List<float> _listPlayerShootTime = new List<float>();
+	public int MaxScore { get; set; } = 5;
+
+	public float GetAverage()
+	{
+		var total = 0f;
+		foreach (var item in _listPlayerShootTime)
+			total += item;
+
+		return total / _listPlayerShootTime.Count;
+	}
 
 	private void Awake()
 	{
 		Instance = this;
 	}
 
+	public void LevelStart()
+	{
+		_killPerson = PersonType.None;
+		_listPlayerShootTime.Clear();
+		player.Score = 0;
+		enemy.Score = 0;
+
+		Play();
+	}
+
 	public void Play()
 	{
 		var canvasGame = (CanvasGame)CanvasManager.Instance.GetCanvasController(CanvasType.Game);
 		canvasGame.CloseScore();
-
-		player.gameObject.SetActive(true);
-		enemy.gameObject.SetActive(true);
 
 		player.SetActiveSprite(false);
 		enemy.SetActiveSprite(false);
@@ -58,8 +73,9 @@ public class GameManager : MonoBehaviour
 			var randomSecond = Random.Range(rangeBangDelay.x, rangeBangDelay.y);
 			yield return new WaitForSeconds(randomSecond);
 			_bangTime = DateTime.Now;
-			_enemyDistance = Random.Range(rangeEnemyShootTime.x, rangeEnemyShootTime.y);
-			CountDown();
+			var currentEnemy = LevelManager.Instance.GetEnemy();
+			_enemyDistance = Random.Range(currentEnemy.rangeTime.x, currentEnemy.rangeTime.y);
+			StartCoroutine(CountDown(_enemyDistance));
 
 			Active(State.Bang);
 		}
@@ -67,15 +83,10 @@ public class GameManager : MonoBehaviour
 		StartCoroutine(Animation());
 	}
 
-	private void CountDown()
+	private IEnumerator CountDown(float delay)
 	{
-		IEnumerator Do()
-		{
-			yield return new WaitForSeconds(_enemyDistance);
-			Shoot(PersonType.Enemy);
-		}
-
-		StartCoroutine(Do());
+		yield return new WaitForSeconds(delay);
+		Shoot(PersonType.Enemy);
 	}
 
 	private void Active(State state)
@@ -115,6 +126,7 @@ public class GameManager : MonoBehaviour
 
 		//Display
 		var playerDistance = _killPerson == PersonType.Enemy ? DateTime.Now - _bangTime : TimeSpan.Zero;
+		_listPlayerShootTime.Add((float)playerDistance.TotalSeconds);
 
 		IEnumerator Do()
 		{

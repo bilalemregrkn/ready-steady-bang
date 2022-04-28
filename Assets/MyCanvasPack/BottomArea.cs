@@ -4,6 +4,11 @@ namespace MyCanvasPack
 {
 	public class BottomArea : MonoBehaviour
 	{
+		public void OnClick_Home()
+		{
+			CanvasManager.Instance.Open(CanvasType.Home);
+		}
+		
 		public void OnClick_Info()
 		{
 			
