@@ -34,6 +34,7 @@ namespace App.Helpers
 				if (!_myButton.interactable)
 					return;
 
+			AudioManager.Instance.Play(SFXType.Button);
 			if (!_isFirstClick)
 			{
 				_isFirstClick = true;

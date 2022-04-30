@@ -16,7 +16,7 @@ namespace MyCanvasPack
 
 		public void OnClick_Yes()
 		{
-			CanvasManager.Instance.Open(CanvasType.Game);
+			CanvasManager.Instance.Open(CanvasType.Level);
 		}
 
 		public void OnClick_No()

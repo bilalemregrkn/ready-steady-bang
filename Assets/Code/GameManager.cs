@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
 	private readonly List<float> _listPlayerShootTime = new List<float>();
 	public int MaxScore { get; set; } = 5;
 
+	private bool _hasBullet;
+
 	public float GetAverage()
 	{
 		var total = 0f;
@@ -57,21 +59,25 @@ public class GameManager : MonoBehaviour
 
 	public void Play()
 	{
+		MusicManager.Instance.SetVolume(false);
 		var canvasGame = (CanvasGame)CanvasManager.Instance.GetCanvasController(CanvasType.Game);
 		canvasGame.CloseScore();
 
 		player.SetActiveSprite(false);
 		enemy.SetActiveSprite(false);
-
 		_killPerson = PersonType.None;
 
 		IEnumerator Animation()
 		{
+			AudioManager.Instance.Play(SFXType.Ready);
 			Active(State.Ready);
 			yield return new WaitForSeconds(steadyOpenDelay);
+			AudioManager.Instance.Play(SFXType.Ready);
 			Active(State.Steady);
+			_hasBullet = true;
 			var randomSecond = Random.Range(rangeBangDelay.x, rangeBangDelay.y);
 			yield return new WaitForSeconds(randomSecond);
+			AudioManager.Instance.Play(SFXType.Bang);
 			_bangTime = DateTime.Now;
 			var currentEnemy = LevelManager.Instance.GetEnemy();
 			_enemyDistance = Random.Range(currentEnemy.rangeTime.x, currentEnemy.rangeTime.y);
@@ -106,6 +112,18 @@ public class GameManager : MonoBehaviour
 	public void Shoot(PersonType type)
 	{
 		if (_killPerson != PersonType.None) return;
+
+		if (type == PersonType.Player && !_hasBullet)
+			return;
+
+		if (type == PersonType.Player && !GetDisplay(State.Bang).gameObject.activeSelf)
+		{
+			_hasBullet = false;
+			AudioManager.Instance.Play(SFXType.Shoot);
+			return;
+		}
+
+
 		_killPerson = type == PersonType.Player ? PersonType.Enemy : PersonType.Player;
 
 		if (_killPerson == PersonType.Enemy)
@@ -118,6 +136,10 @@ public class GameManager : MonoBehaviour
 
 	private void OnKill()
 	{
+		AudioManager.Instance.Play(SFXType.Shoot);
+		AudioManager.Instance.Play(SFXType.Dead, delay: .33f);
+		AudioManager.Instance.Play(SFXType.Blood, delay: .2f);
+
 		var current = GetDisplay(State.Bang);
 		current.gameObject.SetActive(false);
 

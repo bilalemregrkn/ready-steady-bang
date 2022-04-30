@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
-	public static  LevelManager Instance { get; private set; }
+	public static LevelManager Instance { get; private set; }
 	[SerializeField] private List<EnemyData> listEnemyData;
 	public int Level { get; set; }
 

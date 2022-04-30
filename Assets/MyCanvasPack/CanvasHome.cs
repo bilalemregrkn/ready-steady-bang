@@ -21,5 +21,6 @@ namespace MyCanvasPack
 		public void OnClick_Kill_Gallery()
 		{
 		}
+		
 	}
 }

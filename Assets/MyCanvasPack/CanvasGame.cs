@@ -32,6 +32,7 @@ namespace MyCanvasPack
 		{
 			base.Close();
 			gameplay.SetActive(false);
+			MusicManager.Instance.SetVolume(true);
 		}
 
 		private void UpdateSomeButtons(bool active)
